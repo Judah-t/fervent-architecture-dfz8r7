@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CompTIA A+ Study Hub // Neon Tech Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* Base Dark Theme Styling */
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #111827; /* Tailwind gray-900 */
+        color: #d1d5db; /* Tailwind gray-300 */
+      }
+      /* Custom Scrollbar (Optional, enhances theme) */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #1f2937; /* gray-800 */
+      }
+      ::-webkit-scrollbar-thumb {
+        background-color: #0ea5e9; /* cyan-500 */
+        border-radius: 4px;
+        border: 2px solid #1f2937; /* gray-800 */
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background-color: #06b6d4; /* cyan-600 */
+      }
+
+      /* Navigation Active State */
+      .nav-link.active {
+        background-color: rgba(14, 165, 233, 0.3); /* cyan-500 with alpha */
+        color: #e5e7eb; /* gray-200 */
+        font-weight: 600;
+      }
+
+      /* Module Accordion Styles */
+      .module-header {
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+        border-left: 4px solid transparent; /* Placeholder for potential active state */
+      }
+      .module-header:hover {
+        background-color: #374151; /* gray-700 */
+        border-left-color: #0ea5e9; /* cyan-500 */
+      }
+      .module-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.5s ease-out, padding 0.5s ease-out,
+          border-color 0.5s ease-out;
+        background-color: rgba(31, 41, 55, 0.5); /* gray-800 with alpha */
+        border-left: 4px solid transparent;
+      }
+      .module-content.expanded {
+        max-height: 1000px; /* Adjust as needed */
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        transition: max-height 0.5s ease-in, padding 0.5s ease-in,
+          border-color 0.5s ease-in;
+        border-left: 4px solid #0ea5e9; /* cyan-500 */
+      }
+
+      /* Flashcard Styles (Keep Perspective/Flip) */
+      .flashcard {
+        perspective: 1000px;
+      }
+      .flashcard-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+        /* Add a subtle glow effect */
+        box-shadow: 0 0 15px rgba(14, 165, 233, 0.2); /* cyan glow */
+        border-radius: 0.75rem; /* rounded-xl */
+      }
+      .flashcard.flipped .flashcard-inner {
+        transform: rotateY(180deg);
+      }
+      .flashcard-front,
+      .flashcard-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        display: flex;
+        flex-direction: column; /* Allow icon + text */
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        border-radius: 0.75rem; /* rounded-xl */
+        border: 1px solid #374151; /* gray-700 */
+      }
+      .flashcard-front {
+        background: linear-gradient(
+          135deg,
+          #1f2937,
+          #374151
+        ); /* gray-800 to gray-700 */
+        color: #f3f4f6; /* gray-100 */
+      }
+      .flashcard-back {
+        background: linear-gradient(
+          135deg,
+          #083344,
+          #0e7490
+        ); /* cyan-900 to cyan-700 */
+        color: #ecfeff; /* cyan-50 */
+        transform: rotateY(180deg);
+      }
+      /* Style for optional icon on flashcard */
+      .flashcard-icon {
+        margin-bottom: 0.75rem; /* space between icon and text */
+        opacity: 0.7;
+      }
+
+      /* Quiz Feedback Styles (Dark Mode) */
+      .correct-answer {
+        background-color: rgba(34, 197, 94, 0.1); /* green-500 with alpha */
+        border-left: 4px solid #22c55e; /* green-500 */
+        color: #dcfce7; /* green-100 */
+      }
+      .incorrect-answer {
+        background-color: rgba(239, 68, 68, 0.1); /* red-500 with alpha */
+        border-left: 4px solid #ef4444; /* red-500 */
+        color: #fee2e2; /* red-100 */
+      }
+      /* Selected option highlight during feedback */
+      button.selected-option {
+        border-width: 2px;
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+      }
+      button.correct-choice {
+        /* Highlight correct choice if wrong answer selected */
+        border: 2px solid #22c55e !important; /* green-500 */
+        background-color: rgba(34, 197, 94, 0.2) !important;
+        box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+      }
+      button.incorrect-choice {
+        /* Highlight selected incorrect choice */
+        border: 2px solid #ef4444 !important; /* red-500 */
+        background-color: rgba(239, 68, 68, 0.2) !important;
+        box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+      }
+      /* Button base style for quiz options */
+      .quiz-option-button {
+        background-color: #374151; /* gray-700 */
+        border: 1px solid #4b5563; /* gray-600 */
+        color: #d1d5db; /* gray-300 */
+        transition: all 0.2s ease;
+      }
+      .quiz-option-button:hover:not(:disabled) {
+        background-color: #4b5563; /* gray-600 */
+        border-color: #0ea5e9; /* cyan-500 */
+        color: #ffffff;
+      }
+      .quiz-option-button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+
+      /* Hide sections by default */
+      main > section:not(#dashboard) {
+        display: none;
+      }
+      [data-lucide] {
+        vertical-align: middle;
+      }
+      /* Custom select styling for dark mode */
+      select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <header
+      class="bg-gradient-to-r from-gray-900 via-slate-800 to-gray-900 shadow-lg sticky top-0 z-50 border-b border-gray-700/50"
+    >
+      <nav
+        class="container mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center"
+      >
+        <div
+          class="text-2xl font-bold mb-2 md:mb-0 text-white flex items-center"
+        >
+          <i
+            data-lucide="terminal"
+            class="inline-block mr-2 text-cyan-400 animate-pulse"
+          ></i>
+          A+ Study Hub <span class="text-cyan-400 ml-1">// NT</span>
+        </div>
+        <ul class="flex space-x-1 md:space-x-2">
+          <li>
+            <button
+              data-target="dashboard"
+              class="nav-link active px-3 py-2 rounded text-sm font-medium hover:bg-cyan-500/20 transition duration-150"
+            >
+              Dashboard
+            </button>
+          </li>
+          <li>
+            <button
+              data-target="modules"
+              class="nav-link px-3 py-2 rounded text-sm font-medium hover:bg-cyan-500/20 transition duration-150"
+            >
+              Modules
+            </button>
+          </li>
+          <li>
+            <button
+              data-target="quizzes"
+              class="nav-link px-3 py-2 rounded text-sm font-medium hover:bg-cyan-500/20 transition duration-150"
+            >
+              Quizzes
+            </button>
+          </li>
+          <li>
+            <button
+              data-target="flashcards"
+              class="nav-link px-3 py-2 rounded text-sm font-medium hover:bg-cyan-500/20 transition duration-150"
+            >
+              Flashcards
+            </button>
+          </li>
+          <li>
+            <button
+              data-target="resources"
+              class="nav-link px-3 py-2 rounded text-sm font-medium hover:bg-cyan-500/20 transition duration-150"
+            >
+              Resources
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
+      <section id="dashboard">
+        <h1
+          class="text-3xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500"
+        >
+          Dashboard // System Status
+        </h1>
+        <div
+          class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-xl border border-gray-700/50 mb-6"
+        >
+          <h2 class="text-xl font-semibold mb-4 text-gray-100">
+            Core 1 (220-1101) Progress
+          </h2>
+          <div class="w-full bg-gray-700 rounded-full h-4 mb-2 overflow-hidden">
+            <div
+              id="progressBar"
+              class="bg-gradient-to-r from-cyan-500 to-fuchsia-500 h-4 rounded-full transition-all duration-500 ease-out shadow-inner"
+              style="width: 0%"
+            ></div>
+          </div>
+          <p id="progressText" class="text-sm text-gray-400 text-right">
+            0% Complete
+          </p>
+        </div>
+        <div
+          class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-xl border border-gray-700/50"
+        >
+          <h2 class="text-xl font-semibold mb-4 text-gray-100">
+            Quick Actions
+          </h2>
+          <div
+            class="space-y-3 md:space-y-0 md:space-x-4 flex flex-col md:flex-row"
+          >
+            <button
+              id="continueLastBtn"
+              class="w-full md:w-auto bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-5 py-2 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none disabled:from-gray-600 disabled:to-gray-700"
+              disabled
+            >
+              <i data-lucide="play-circle" class="mr-2 h-5 w-5"></i> Continue
+              Last Activity
+            </button>
+            <button
+              id="startComprehensiveQuizBtn"
+              data-quiz-type="comprehensive"
+              data-filter-id="core1"
+              class="w-full md:w-auto bg-gray-700 hover:bg-gray-600 border border-gray-600 hover:border-cyan-500 text-gray-200 hover:text-white px-5 py-2 rounded-lg font-medium flex items-center justify-center transition-all duration-200 ease-in-out transform hover:scale-105"
+            >
+              <i
+                data-lucide="file-question"
+                class="mr-2 h-5 w-5 text-cyan-400"
+              ></i>
+              Start Comprehensive Core 1 Quiz
+            </button>
+          </div>
+          <p id="lastActivityInfo" class="text-sm text-gray-500 mt-3 hidden">
+            Last checkpoint: Module
+            <span id="lastModuleId" class="font-semibold text-cyan-400"
+              >N/A</span
+            >
+          </p>
+        </div>
+      </section>
+
+      <section id="modules">
+        <h1
+          class="text-3xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-500"
+        >
+          Learning Modules // Core 1 (220-1101)
+        </h1>
+        <div id="modulesAccordion" class="space-y-4"></div>
+        <h2 class="text-2xl font-semibold mt-12 mb-4 text-gray-600">
+          Core 2 (220-1102) // Standby
+        </h2>
+        <div class="space-y-4 opacity-50 cursor-not-allowed">
+          <div class="bg-gray-800/30 p-4 rounded-lg border border-gray-700/50">
+            <h3 class="font-semibold text-gray-500">
+              6.0 Operating Systems (Interface Offline)
+            </h3>
+          </div>
+          <div class="bg-gray-800/30 p-4 rounded-lg border border-gray-700/50">
+            <h3 class="font-semibold text-gray-500">
+              7.0 Security (Interface Offline)
+            </h3>
+          </div>
+          <div class="bg-gray-800/30 p-4 rounded-lg border border-gray-700/50">
+            <h3 class="font-semibold text-gray-500">
+              8.0 Software Troubleshooting (Interface Offline)
+            </h3>
+          </div>
+          <div class="bg-gray-800/30 p-4 rounded-lg border border-gray-700/50">
+            <h3 class="font-semibold text-gray-500">
+              9.0 Operational Procedures (Interface Offline)
+            </h3>
+          </div>
+        </div>
+      </section>
+
+      <section id="quizzes">
+        <h1
+          class="text-3xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-500 to-pink-500"
+        >
+          Assessment Center // Quiz Mode
+        </h1>
+        <div
+          id="quizContainer"
+          class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-xl border border-gray-700/50"
+        >
+          <div id="quizSetup">
+            <h2 class="text-xl font-semibold mb-4 text-gray-100">
+              Select Assessment:
+            </h2>
+            <p class="text-sm mb-6 text-gray-400">
+              Choose a specific Core 1 module quiz or the comprehensive
+              assessment. For sub-objective quizzes, please navigate via the
+              Modules section.
+            </p>
+
+            <div
+              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6"
+            >
+              <button
+                class="quiz-start-button bg-gray-700 hover:bg-gray-600 border border-gray-600 hover:border-cyan-500 text-gray-200 hover:text-white p-4 rounded-lg font-medium transition-all duration-200 ease-in-out transform hover:scale-105 flex items-center justify-center text-center"
+                data-quiz-type="module"
+                data-filter-id="1.0"
+              >
+                <i
+                  data-lucide="smartphone"
+                  class="mr-2 h-5 w-5 text-cyan-400"
+                ></i>
+                Module 1.0<br />Mobile Devices
+              </button>
+              <button
+                class="quiz-start-button bg-gray-700 hover:bg-gray-600 border border-gray-600 hover:border-cyan-500 text-gray-200 hover:text-white p-4 rounded-lg font-medium transition-all duration-200 ease-in-out transform hover:scale-105 flex items-center justify-center text-center"
+                data-quiz-type="module"
+                data-filter-id="2.0"
+              >
+                <i data-lucide="network" class="mr-2 h-5 w-5 text-cyan-400"></i>
+                Module 2.0<br />Networking
+              </button>
+              <button
+                class="quiz-start-button bg-gray-700 hover:bg-gray-600 border border-gray-600 hover:border-cyan-500 text-gray-200 hover:text-white p-4 rounded-lg font-medium transition-all duration-200 ease-in-out transform hover:scale-105 flex items-center justify-center text-center"
+                data-quiz-type="module"
+                data-filter-id="3.0"
+              >
+                <i data-lucide="cpu" class="mr-2 h-5 w-5 text-cyan-400"></i>
+                Module 3.0<br />Hardware
+              </button>
+              <button
+                class="quiz-start-button bg-gray-700 hover:bg-gray-600 border border-gray-600 hover:border-cyan-500 text-gray-200 hover:text-white p-4 rounded-lg font-medium transition-all duration-200 ease-in-out transform hover:scale-105 flex items-center justify-center text-center"
+                data-quiz-type="module"
+                data-filter-id="4.0"
+              >
+                <i data-lucide="cloud" class="mr-2 h-5 w-5 text-cyan-400"></i>
+                Module 4.0<br />Virtualization & Cloud
+              </button>
+              <button
+                class="quiz-start-button bg-gray-700 hover:bg-gray-600 border border-gray-600 hover:border-cyan-500 text-gray-200 hover:text-white p-4 rounded-lg font-medium transition-all duration-200 ease-in-out transform hover:scale-105 flex items-center justify-center text-center"
+                data-quiz-type="module"
+                data-filter-id="5.0"
+              >
+                <i data-lucide="wrench" class="mr-2 h-5 w-5 text-cyan-400"></i>
+                Module 5.0<br />Troubleshooting
+              </button>
+            </div>
+
+            <div class="border-t border-gray-700 pt-6 mt-6 text-center">
+              <button
+                id="startComprehensiveQuizBtn2"
+                class="quiz-start-button bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-700 hover:to-pink-700 text-white px-6 py-3 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out transform hover:scale-105 inline-flex items-center"
+                data-quiz-type="comprehensive"
+                data-filter-id="core1"
+              >
+                <i data-lucide="scan-line" class="mr-2 h-5 w-5"></i> Execute
+                Comprehensive Core 1 Test
+              </button>
+            </div>
+
+            <p class="text-xs text-gray-500 mt-8 text-center">
+              Or,
+              <button
+                data-target="modules"
+                class="nav-link text-cyan-400 hover:text-cyan-300 underline"
+              >
+                browse modules
+              </button>
+              for detailed objectives and sub-quizzes.
+            </p>
+          </div>
+
+          <div id="quizInProgress" class="hidden">
+            <h2
+              id="quizTitle"
+              class="text-xl font-semibold mb-6 text-gray-100 border-b border-gray-700 pb-2"
+            >
+              Quiz Title
+            </h2>
+            <div id="questionContainer" class="mb-4">
+              <p
+                id="questionText"
+                class="text-lg mb-5 font-medium text-gray-200"
+              ></p>
+              <div id="optionsContainer" class="space-y-3"></div>
+            </div>
+            <div
+              id="feedbackContainer"
+              class="mt-5 hidden p-4 rounded-lg text-base"
+            >
+              <p id="feedbackText" class="font-semibold text-lg mb-1"></p>
+              <p id="explanationText" class="text-sm opacity-90"></p>
+            </div>
+            <div
+              class="mt-6 flex justify-between items-center border-t border-gray-700 pt-4"
+            >
+              <span
+                id="questionProgress"
+                class="text-sm text-gray-400 font-mono"
+                >Question X of Y</span
+              >
+              <button
+                id="nextQuestionBtn"
+                class="bg-cyan-600 hover:bg-cyan-700 text-white px-5 py-2 rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none disabled:bg-gray-600"
+                disabled
+              >
+                Next
+              </button>
+            </div>
+          </div>
+
+          <div id="quizResults" class="hidden text-center">
+            <h2
+              class="text-2xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-500"
+            >
+              Assessment Complete
+            </h2>
+            <p id="scoreText" class="text-xl text-gray-200 mb-2"></p>
+            <p
+              id="percentageText"
+              class="text-4xl font-bold text-cyan-400 mb-6"
+            ></p>
+            <p
+              id="completionMessage"
+              class="text-sm text-gray-400 mt-1 mb-6"
+            ></p>
+            <div class="space-x-4">
+              <button
+                id="restartQuizBtn"
+                class="bg-gray-700 hover:bg-gray-600 border border-gray-600 hover:border-cyan-500 text-gray-200 hover:text-white px-5 py-2 rounded-lg font-medium transition-all duration-200 ease-in-out transform hover:scale-105"
+              >
+                Retry Assessment
+              </button>
+              <button
+                data-target="modules"
+                class="nav-link bg-cyan-600 hover:bg-cyan-700 text-white px-5 py-2 rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
+              >
+                Return to Modules
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="flashcards">
+        <h1
+          class="text-3xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-lime-500"
+        >
+          Data Recall // Flashcards
+        </h1>
+
+        <div
+          class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-gray-700/50 mb-6 flex flex-col sm:flex-row gap-4 items-center"
+        >
+          <div class="flex-grow w-full sm:w-auto">
+            <label
+              for="flashcardFilterModule"
+              class="block text-xs font-medium text-gray-400 mb-1"
+              >Filter by Module:</label
+            >
+            <select
+              id="flashcardFilterModule"
+              class="block w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-sm text-gray-200 focus:ring-cyan-500 focus:border-cyan-500"
+            >
+              <option value="all">All Core 1</option>
+            </select>
+          </div>
+          <div class="flex items-center pt-4 sm:pt-5">
+            <input
+              id="flashcardFilterLearned"
+              type="checkbox"
+              class="h-4 w-4 rounded border-gray-600 bg-gray-700 text-cyan-600 focus:ring-cyan-500/50"
+            />
+            <label
+              for="flashcardFilterLearned"
+              class="ml-2 block text-sm text-gray-300"
+              >Study Unlearned Only</label
+            >
+          </div>
+        </div>
+
+        <div class="max-w-lg mx-auto">
+          <div id="flashcardContainer" class="flashcard h-64 mb-4 rounded-xl">
+            <div class="flashcard-inner">
+              <div class="flashcard-front">
+                <span id="flashcardIconFront" class="flashcard-icon"></span>
+                <span id="flashcardTerm" class="text-xl font-semibold"
+                  >Loading...</span
+                >
+              </div>
+              <div class="flashcard-back">
+                <span id="flashcardIconBack" class="flashcard-icon"></span>
+                <span id="flashcardDefinition" class="text-lg">Loading...</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center mb-4">
+            <button
+              id="markLearnedBtn"
+              class="text-xs px-3 py-1 rounded-full border transition-colors duration-150"
+            >
+              <i data-lucide="check" class="inline-block h-3 w-3 mr-1"></i>Mark
+              as Learned
+            </button>
+          </div>
+
+          <div class="flex justify-between items-center mb-4 px-2">
+            <button
+              id="prevCardBtn"
+              class="bg-gray-700/50 hover:bg-gray-600/70 text-gray-300 p-3 rounded-full transition-all duration-200 hover:text-cyan-400 transform hover:scale-110"
+            >
+              <i data-lucide="arrow-left" class="h-5 w-5"></i>
+            </button>
+            <span id="cardCounter" class="text-sm text-gray-400 font-mono"
+              >0 / 0</span
+            >
+            <button
+              id="nextCardBtn"
+              class="bg-gray-700/50 hover:bg-gray-600/70 text-gray-300 p-3 rounded-full transition-all duration-200 hover:text-cyan-400 transform hover:scale-110"
+            >
+              <i data-lucide="arrow-right" class="h-5 w-5"></i>
+            </button>
+          </div>
+          <div class="flex justify-center space-x-4">
+            <button
+              id="flipCardBtn"
+              class="bg-gradient-to-r from-emerald-500 to-lime-600 hover:from-emerald-600 hover:to-lime-700 text-white px-5 py-2 rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105 w-1/2"
+            >
+              <i data-lucide="repeat" class="inline-block mr-1 h-4 w-4"></i>
+              Flip Card
+            </button>
+            <button
+              id="shuffleCardsBtn"
+              class="bg-gray-700 hover:bg-gray-600 border border-gray-600 hover:border-emerald-500 text-gray-200 hover:text-white px-5 py-2 rounded-lg font-medium transition-all duration-200 ease-in-out transform hover:scale-105 w-1/2"
+            >
+              <i data-lucide="shuffle" class="inline-block mr-1 h-4 w-4"></i>
+              Shuffle
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="resources">
+        <h1
+          class="text-3xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500"
+        >
+          Reference Database // Core 1
+        </h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div
+            class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-xl border border-gray-700/50"
+          >
+            <h2
+              class="text-xl font-semibold mb-4 flex items-center text-gray-100"
+            >
+              <i data-lucide="plug-zap" class="mr-2 h-5 w-5 text-cyan-400"></i>
+              Common Ports
+            </h2>
+            <div class="overflow-auto max-h-96 custom-scrollbar">
+              <table class="min-w-full divide-y divide-gray-700">
+                <thead class="sticky top-0 bg-gray-800/80 backdrop-blur-sm">
+                  <tr>
+                    <th
+                      scope="col"
+                      class="px-4 py-2 text-left text-xs font-medium text-cyan-400 uppercase tracking-wider"
+                    >
+                      Port
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-4 py-2 text-left text-xs font-medium text-cyan-400 uppercase tracking-wider"
+                    >
+                      Protocol
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-4 py-2 text-left text-xs font-medium text-cyan-400 uppercase tracking-wider"
+                    >
+                      Purpose
+                    </th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="portsTableBody"
+                  class="bg-gray-800/30 divide-y divide-gray-700/50"
+                ></tbody>
+              </table>
+            </div>
+          </div>
+          <div
+            class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-xl border border-gray-700/50"
+          >
+            <h2
+              class="text-xl font-semibold mb-4 flex items-center text-gray-100"
+            >
+              <i
+                data-lucide="book-marked"
+                class="mr-2 h-5 w-5 text-cyan-400"
+              ></i>
+              Acronym Glossary
+            </h2>
+            <ul
+              id="acronymsList"
+              class="space-y-2 max-h-96 overflow-y-auto pr-2 custom-scrollbar"
+            ></ul>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer
+      class="bg-gray-900/50 text-gray-500 text-center p-4 mt-8 border-t border-gray-700/50 text-xs"
+    >
+      <p>
+        &copy; <span id="currentYear"></span> CompTIA A+ Study Hub // Neon Tech
+        Edition. Simulation Only.
+      </p>
+    </footer>
+
+    <script src="questions.js"></script>
+    <script src="data.js"></script>
+    <script src="state.js"></script>
+    <script src="ui.js"></script>
+    <script src="quiz.js"></script>
+    <script src="flashcards.js"></script>
+    <script src="main.js"></script>
+  </body>
+</html>
